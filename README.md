@@ -307,6 +307,4 @@ The project uses several configuration files:
 
 ---
 
-**Note**: This project is specifically designed for PUPSMB's transparency initiatives and governance requirements. The system promotes accountability, openness, and efficient document management within the university community.#   n e w _ t r a n s p a r a t e c h 
- 
- 
+**Note**: This project is specifically designed for PUPSMB's transparency initiatives and governance requirements. The system promotes accountability, openness, and efficient document management within the university community.#
