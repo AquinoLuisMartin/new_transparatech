@@ -94,157 +94,104 @@ Ensure you have the following installed on your system:
 
 ## 📁 Project Structure
 
+The project is organized into two main parts: a `client` directory for the frontend application and a `server` directory for the backend services.
+
+### Client-Side Structure
+
+The `client` directory contains the React-based frontend application, built with Vite and TypeScript.
+
 ```
-transparatech-typescript/
+client/
 ├── public/                          # Static assets
-│   └── images/                      # Public images
-│       ├── country/                 # Country-related images
-│       ├── error/                   # Error page images
-│       ├── logo/                    # Logo assets
-│       └── user/                    # User avatar images
+│   └── images/                      # Publicly accessible images
+│       ├── country/
+│       ├── error/
+│       ├── logo/
+│       └── user/
 │
 ├── src/                             # Source code
 │   ├── components/                  # Reusable React components
-│   │   ├── PrivateRoute.tsx         # Route protection component
-│   │   ├── charts/                  # Chart components
-│   │   │   ├── bar/                 # Bar chart components
-│   │   │   └── line/                # Line chart components
-│   │   ├── common/                  # Common UI components
-│   │   │   ├── ComponentCard.tsx    # Card wrapper component
-│   │   │   ├── GridShape.tsx        # Grid layout component
-│   │   │   ├── PageBreadCrumb.tsx   # Breadcrumb navigation
-│   │   │   ├── PageMeta.tsx         # Page metadata component
-│   │   │   ├── ScrollToTop.tsx      # Scroll to top functionality
-│   │   │   ├── ThemeToggleButton.tsx # Theme switching
-│   │   │   └── ThemeTogglerTwo.tsx  # Alternative theme toggler
-│   │   ├── form/                    # Form components
-│   │   │   ├── date-picker.tsx      # Date picker component
-│   │   │   ├── Form.tsx             # Main form component
-│   │   │   ├── Label.tsx            # Form label component
-│   │   │   ├── MultiSelect.tsx      # Multi-select component
-│   │   │   ├── Select.tsx           # Select dropdown
-│   │   │   ├── form-elements/       # Form input elements
-│   │   │   ├── group-input/         # Grouped input components
-│   │   │   ├── input/               # Input components
-│   │   │   └── switch/              # Toggle switch components
-│   │   ├── header/                  # Header components
-│   │   │   ├── Header.tsx           # Main header
-│   │   │   ├── NotificationDropdown.tsx # Notifications
-│   │   │   └── UserDropdown.tsx     # User menu dropdown
+│   │   ├── charts/                  # Chart components (Bar, Line)
+│   │   ├── common/                  # Common UI elements (Breadcrumbs, Cards)
+│   │   ├── form/                    # Form inputs and controls
+│   │   ├── header/                  # Header and navigation components
 │   │   ├── tables/                  # Table components
-│   │   │   └── BasicTables/         # Basic table implementations
-│   │   ├── ui/                      # UI components
-│   │   │   ├── alert/               # Alert components
-│   │   │   ├── avatar/              # Avatar components
-│   │   │   ├── badge/               # Badge components
-│   │   │   ├── button/              # Button components
-│   │   │   ├── dropdown/            # Dropdown components
-│   │   │   ├── images/              # Image components
-│   │   │   ├── modal/               # Modal components
-│   │   │   ├── table/               # Table UI components
-│   │   │   └── videos/              # Video components
-│   │   └── UserProfile/             # User profile components
-│   │       ├── UserAddressCard.tsx  # Address card component
-│   │       ├── UserInfoCard.tsx     # User info card
-│   │       └── UserMetaCard.tsx     # User metadata card
+│   │   ├── ui/                      # Core UI building blocks (Button, Modal)
+│   │   ├── ActivityCard.tsx
+│   │   ├── ErrorBoundary.tsx
+│   │   ├── PrivateRoute.tsx
+│   │   ├── SubmissionCard.tsx
+│   │   └── SubmissionDetailsModal.tsx
 │   │
-│   ├── context/                     # React Context providers
-│   │   ├── AuthContext.ts           # Authentication context
-│   │   ├── AuthProvider.tsx         # Auth provider component
-│   │   ├── SidebarContext.tsx       # Sidebar state management
-│   │   └── ThemeContext.tsx         # Theme management
+│   ├── context/                     # React Context for global state
+│   │   ├── AuthContext.ts
+│   │   ├── AuthProvider.tsx
+│   │   ├── SidebarContext.tsx
+│   │   └── ThemeContext.tsx
 │   │
 │   ├── hooks/                       # Custom React hooks
-│   │   ├── useAuth.ts               # Authentication hook
-│   │   ├── useGoBack.ts             # Navigation hook
-│   │   └── useModal.ts              # Modal management hook
+│   │   ├── useAuth.ts
+│   │   ├── useGoBack.ts
+│   │   └── useModal.ts
 │   │
-│   ├── icons/                       # Icon components and assets
-│   │   └── index.ts                 # Icon exports
+│   ├── icons/                       # SVG icon components
 │   │
-│   ├── images/                      # Application images
+│   ├── layout/                      # Application layout components
+│   │   ├── AppHeader.tsx
+│   │   ├── AppLayout.tsx
+│   │   ├── AppSidebar.tsx
+│   │   ├── Backdrop.tsx
+│   │   └── SidebarWidget.tsx
 │   │
-│   ├── layout/                      # Layout components
-│   │   ├── AppHeader.tsx            # Application header
-│   │   ├── AppLayout.tsx            # Main layout wrapper
-│   │   ├── AppSidebar.tsx           # Sidebar navigation
-│   │   ├── Backdrop.tsx             # Modal backdrop
-│   │   └── SidebarWidget.tsx        # Sidebar widget component
+│   ├── pages/                       # Top-level page components
+│   │   ├── AuthPages/               # Authentication (Login, Signup)
+│   │   ├── Dashboard/               # Role-based dashboards
+│   │   ├── Landing/                 # Public landing pages
+│   │   └── ...                      # Other application pages
 │   │
-│   ├── pages/                       # Page components
-│   │   ├── AccountSettings.tsx      # Account settings page
-│   │   ├── Blank.tsx                # Blank page template
-│   │   ├── Calendar.tsx             # Calendar page
-│   │   ├── FileUpload.tsx           # File upload page
-│   │   ├── UserProfiles.tsx         # User profiles page
-│   │   ├── AuthPages/               # Authentication pages
-│   │   │   ├── AuthPageLayout.tsx   # Auth layout wrapper
-│   │   │   ├── Login.css            # Login page styles
-│   │   │   ├── LogIn.tsx            # Login page
-│   │   │   ├── Signup.css           # Signup page styles
-│   │   │   └── SignUp.tsx           # Signup page
-│   │   ├── Charts/                  # Chart pages
-│   │   │   ├── BarChart.tsx         # Bar chart page
-│   │   │   └── LineChart.tsx        # Line chart page
-│   │   ├── Dashboard/               # Dashboard pages
-│   │   │   ├── index.tsx            # Main dashboard
-│   │   │   ├── Admin/               # Admin dashboard pages
-│   │   │   │   ├── DocumentApprovals.tsx
-│   │   │   │   ├── UserManagement.tsx
-│   │   │   │   ├── OrganizationManagement.tsx
-│   │   │   │   ├── AnnouncementsManagement.tsx
-│   │   │   │   ├── AnalyticsReports.tsx
-│   │   │   │   └── SystemSettings.tsx
-│   │   │   ├── Officer/             # Officer dashboard pages
-│   │   │   │   ├── UploadDocuments.tsx
-│   │   │   │   ├── MySubmissions.tsx
-│   │   │   │   ├── ActivityLog.tsx
-│   │   │   │   └── Announcements.tsx
-│   │   │   └── Viewer/              # Viewer dashboard pages
-│   │   │       ├── DocumentsViewer.tsx
-│   │   │       ├── TransparencyReportViewer.tsx
-│   │   │       ├── AnnouncementsViewer.tsx
-│   │   │       └── FeedbackViewer.tsx
-│   │   ├── Forms/                   # Form pages
-│   │   │   └── FormElements.tsx     # Form elements showcase
-│   │   ├── Landing/                 # Landing pages
-│   │   │   ├── Home.css             # Home page styles
-│   │   │   └── Home.tsx             # Landing page
-│   │   ├── OtherPage/               # Other pages
-│   │   │   ├── NotFound.tsx         # 404 error page
-│   │   │   └── Unauthorized.tsx     # 401 error page
-│   │   ├── Tables/                  # Table pages
-│   │   │   └── BasicTables.tsx      # Basic tables page
-│   │   └── UiElements/              # UI showcase pages
-│   │       ├── Alerts.tsx           # Alerts showcase
-│   │       ├── Avatars.tsx          # Avatars showcase
-│   │       ├── Badges.tsx           # Badges showcase
-│   │       ├── Buttons.tsx          # Buttons showcase
-│   │       ├── Images.tsx           # Images showcase
-│   │       └── Videos.tsx           # Videos showcase
-│   │
-│   ├── routes/                      # Application routing
-│   │   └── index.tsx                # Route definitions
+│   ├── routes/                      # Routing configuration
+│   │   └── index.tsx
 │   │
 │   ├── types/                       # TypeScript type definitions
-│   │   └── auth.ts                  # Authentication types
+│   │   ├── auth.ts
+│   │   └── submission.ts
 │   │
 │   ├── App.tsx                      # Main application component
-│   ├── index.css                    # Global styles
 │   ├── main.tsx                     # Application entry point
-│   ├── permissions.ts               # Permission management
-│   ├── svg.d.ts                     # SVG type declarations
-│   └── vite-env.d.ts               # Vite environment types
+│   └── index.css                    # Global styles
 │
 ├── eslint.config.js                 # ESLint configuration
 ├── index.html                       # HTML template
 ├── package.json                     # Project dependencies and scripts
-├── postcss.config.js               # PostCSS configuration
-├── README.md                        # Project documentation
-├── tsconfig.app.json               # TypeScript config for app
-├── tsconfig.json                   # Main TypeScript configuration
-├── tsconfig.node.json              # TypeScript config for Node.js
-└── vite.config.ts                  # Vite configuration
+├── tsconfig.json                    # TypeScript configuration
+└── vite.config.ts                   # Vite configuration
+```
+
+### Server-Side Structure
+
+The `server` directory contains the Node.js and Express.js backend, which handles API requests, database interactions, and authentication.
+
+```
+server/
+├── database/                        # Database setup, migrations, and seeds
+│   ├── migrations/
+│   ├── seeds/
+│   ├── seed.js
+│   └── setup.js
+│
+├── src/                             # Server source code
+│   ├── app.js                       # Express application setup
+│   ├── config/                      # Configuration files (database, etc.)
+│   ├── controllers/                 # Request handlers for different routes
+│   ├── middleware/                  # Express middleware (auth, error handling)
+│   ├── models/                      # Database models (e.g., User)
+│   ├── routes/                      # API route definitions
+│   ├── services/                    # Business logic and external service integrations
+│   └── utils/                       # Utility functions
+│
+├── .env                             # Environment variables (ignored by Git)
+├── package.json                     # Server dependencies and scripts
+└── server.js                        # Server entry point
 ```
 
 ## 🔐 User Roles & Permissions

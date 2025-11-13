@@ -1,5 +1,7 @@
 export const ROLES = {
   ADMIN_FULL: 'admin_full',
+  // Backwards-compatible alias for older code referencing ROLES.ADMIN
+  ADMIN: 'admin_full',
   ADMIN_APPROVAL: 'admin_approval', 
   OFFICER: 'officer',
   VIEWER: 'viewer',

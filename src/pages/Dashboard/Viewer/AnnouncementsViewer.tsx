@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PageMeta from '../../../components/common/PageMeta';
+import Calendar from '../../../components/ui/calendar';
 
 const AnnouncementsViewer: React.FC = () => {
   const announcements = [
@@ -78,16 +79,71 @@ const AnnouncementsViewer: React.FC = () => {
   ];
 
   const categories = ["All", "System Update", "Meeting", "Policy", "Schedule", "Community", "Technical"];
-  const [selectedCategory, setSelectedCategory] = React.useState("All");
-  const [searchTerm, setSearchTerm] = React.useState("");
 
-  const filteredAnnouncements = announcements.filter(announcement => {
-    const matchesCategory = selectedCategory === "All" || announcement.category === selectedCategory;
-    const matchesSearch = announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         announcement.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         announcement.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchesCategory && matchesSearch;
-  });
+  // Filters / UI state (mirrors Officer MySubmissions behaviour)
+  const [filterStatus, setFilterStatus] = useState('All'); // using category-like status for announcements
+  const [searchTerm, setSearchTerm] = useState('');
+  const [nameSort, setNameSort] = useState('default'); // 'default' | 'ascending' | 'descending'
+  const [dateRange, setDateRange] = useState('all'); // 'today' | '7' | '30' | 'year' | 'all' | 'custom'
+  const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
+  const [customEndDate, setCustomEndDate] = useState<Date | undefined>();
+  const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
+
+  const statusOptions = [{ value: 'All', label: 'All Status' }, ...categories.filter(c => c !== 'All').map(c => ({ value: c, label: c }))];
+
+  const isWithinDateRange = (dateStr: string) => {
+    if (dateRange === 'all') return true;
+    const date = new Date(dateStr);
+    const now = new Date();
+
+    const sameDay = (d1: Date, d2: Date) => d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
+    if (dateRange === 'today') return sameDay(date, now);
+
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    if (dateRange === '7') return diffDays <= 7;
+    if (dateRange === '30') return diffDays <= 30;
+    if (dateRange === 'year') return date.getFullYear() === now.getFullYear();
+
+    if (dateRange === 'custom') {
+      if (!customStartDate && !customEndDate) return true;
+      const start = customStartDate ? new Date(customStartDate) : null;
+      const end = customEndDate ? new Date(customEndDate) : null;
+      if (start && end) {
+        start.setHours(0,0,0,0);
+        end.setHours(23,59,59,999);
+        return date.getTime() >= start.getTime() && date.getTime() <= end.getTime();
+      }
+      if (start) {
+        start.setHours(0,0,0,0);
+        return date.getTime() >= start.getTime();
+      }
+      if (end) {
+        end.setHours(23,59,59,999);
+        return date.getTime() <= end.getTime();
+      }
+      return true;
+    }
+
+    return true;
+  };
+
+  const filteredAnnouncements = announcements
+    .filter(announcement => {
+      const matchesStatus = filterStatus === 'All' || announcement.category === filterStatus;
+      const lower = searchTerm.toLowerCase();
+      const matchesSearch = announcement.title.toLowerCase().includes(lower) ||
+                           announcement.content.toLowerCase().includes(lower) ||
+                           announcement.tags.some(tag => tag.toLowerCase().includes(lower)) ||
+                           announcement.category.toLowerCase().includes(lower);
+      const matchesDate = isWithinDateRange(announcement.publishDate);
+      return matchesStatus && matchesSearch && matchesDate;
+    })
+    .sort((a, b) => {
+      if (nameSort === 'ascending') return a.title.localeCompare(b.title);
+      if (nameSort === 'descending') return b.title.localeCompare(a.title);
+      return 0;
+    });
 
   const stickyAnnouncements = filteredAnnouncements.filter(a => a.isSticky);
   const regularAnnouncements = filteredAnnouncements.filter(a => !a.isSticky);
@@ -140,48 +196,109 @@ const AnnouncementsViewer: React.FC = () => {
           </p>
         </div>
 
-        {/* Search and Filters */}
-        <div className="mb-8 space-y-4">
-          {/* Search Bar */}
-          <div className="relative">
-            <svg
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search announcements..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-            />
+        {/* Filters and Search - 4 column responsive grid: Search, Status, Name Sort, Date Range */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search Announcements</label>
+              <div className="relative">
+                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  id="search"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search announcements..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Filter by Status</label>
+              <select
+                id="status-filter"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              >
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="name-sort" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sort by Name</label>
+              <select
+                id="name-sort"
+                value={nameSort}
+                onChange={(e) => setNameSort(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              >
+                <option value="default">Default (original order)</option>
+                <option value="ascending">Ascending (A–Z)</option>
+                <option value="descending">Descending (Z–A)</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="date-range" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date Range</label>
+              <select
+                id="date-range"
+                value={dateRange}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setDateRange(v);
+                  if (v !== 'custom') {
+                    setCustomStartDate(undefined);
+                    setCustomEndDate(undefined);
+                    setShowCustomDatePicker(false);
+                  } else {
+                    setShowCustomDatePicker(true);
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              >
+                <option value="today">Today</option>
+                <option value="7">Last 7 Days</option>
+                <option value="30">Last 30 Days</option>
+                <option value="year">This Year</option>
+                <option value="all">All Time</option>
+                <option value="custom">Custom Range</option>
+              </select>
+            </div>
           </div>
 
-          {/* Category Filter */}
-          <div className="flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedCategory === category
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
+          {dateRange === 'custom' && (
+            <div data-open={String(showCustomDatePicker)} className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Start Date</label>
+                <Calendar
+                  selected={customStartDate}
+                  onSelect={(d) => {
+                    setCustomStartDate(d);
+                    if (customEndDate && d && customEndDate.getTime() < d.getTime()) {
+                      setCustomEndDate(undefined);
+                    }
+                  }}
+                  placeholder="Select start date"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">End Date</label>
+                <Calendar
+                  selected={customEndDate}
+                  onSelect={(d) => setCustomEndDate(d)}
+                  minDate={customStartDate}
+                  placeholder="Select end date"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Sticky Announcements */}
@@ -223,7 +340,6 @@ const AnnouncementsViewer: React.FC = () => {
                   <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                     <div className="flex items-center gap-4">
                       <span>By {announcement.author}</span>
-                      <span>{announcement.views} views</span>
                     </div>
                     <div className="flex gap-2">
                       {announcement.tags.map((tag, tagIndex) => (
@@ -277,7 +393,6 @@ const AnnouncementsViewer: React.FC = () => {
                 <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                   <div className="flex items-center gap-4">
                     <span>By {announcement.author}</span>
-                    <span>{announcement.views} views</span>
                   </div>
                   <div className="flex gap-2">
                     {announcement.tags.map((tag, tagIndex) => (

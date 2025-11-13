@@ -6,6 +6,8 @@ interface DropdownProps {
   onClose: () => void;
   children: React.ReactNode;
   className?: string;
+  // When true, clicking outside the dropdown will NOT close it.
+  disableOutsideClose?: boolean;
 }
 
 export const Dropdown: React.FC<DropdownProps> = ({
@@ -13,10 +15,13 @@ export const Dropdown: React.FC<DropdownProps> = ({
   onClose,
   children,
   className = "",
+  disableOutsideClose = false,
 }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (disableOutsideClose) return;
+
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&

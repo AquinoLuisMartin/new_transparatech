@@ -7,15 +7,24 @@ import App from "./App.tsx";
 import { AppWrapper } from "./components/common/PageMeta.tsx";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
 import { AuthProvider } from './context/AuthProvider';
+import ErrorBoundary from './components/ErrorBoundary.tsx';
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <ThemeProvider>
-      <AuthProvider>
-        <AppWrapper>
-          <App />
-        </AppWrapper>
-      </AuthProvider>
-    </ThemeProvider>
-  </StrictMode>,
-);
+const rootElement = document.getElementById("root");
+
+if (!rootElement) {
+  console.error("Root element not found!");
+} else {
+  createRoot(rootElement).render(
+    <StrictMode>
+      <ErrorBoundary>
+        <ThemeProvider>
+          <AuthProvider>
+            <AppWrapper>
+              <App />
+            </AppWrapper>
+          </AuthProvider>
+        </ThemeProvider>
+      </ErrorBoundary>
+    </StrictMode>,
+  );
+}

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { 
-  PlusIcon, 
   PencilIcon, 
   TrashBinIcon,
   DocsIcon,
@@ -28,7 +27,9 @@ const AnnouncementsManagement = () => {
   const [priorityFilter, setPriorityFilter] = useState<'all' | 'low' | 'medium' | 'high' | 'urgent'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
+  const [announcementToDelete, setAnnouncementToDelete] = useState<Announcement | null>(null);
 
   // Mock data
   const [announcements, setAnnouncements] = useState<Announcement[]>([
@@ -99,16 +100,17 @@ const AnnouncementsManagement = () => {
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
-  const handleAddAnnouncement = () => {
+  const handleAddAnnouncement = (status: 'draft' | 'published' = 'published') => {
     const announcement: Announcement = {
       id: Date.now().toString(),
       title: newAnnouncement.title,
       content: newAnnouncement.content,
       priority: newAnnouncement.priority,
-      status: 'draft',
+      status: status,
       targetAudience: newAnnouncement.targetAudience,
       createdBy: 'System Administrator',
       createdAt: new Date().toISOString().split('T')[0],
+      publishedAt: status === 'published' ? new Date().toISOString().split('T')[0] : undefined,
       expiresAt: newAnnouncement.expiresAt || undefined,
       views: 0
     };
@@ -128,9 +130,16 @@ const AnnouncementsManagement = () => {
     }
   };
 
-  const handleDeleteAnnouncement = (id: string) => {
-    if (confirm('Are you sure you want to delete this announcement?')) {
-      setAnnouncements(announcements.filter(announcement => announcement.id !== id));
+  const handleDeleteAnnouncement = (announcement: Announcement) => {
+    setAnnouncementToDelete(announcement);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteAnnouncement = () => {
+    if (announcementToDelete) {
+      setAnnouncements(announcements.filter(announcement => announcement.id !== announcementToDelete.id));
+      setShowDeleteModal(false);
+      setAnnouncementToDelete(null);
     }
   };
 
@@ -146,6 +155,14 @@ const AnnouncementsManagement = () => {
     setAnnouncements(announcements.map(announcement => 
       announcement.id === id 
         ? { ...announcement, status: 'archived' }
+        : announcement
+    ));
+  };
+
+  const handleUnarchiveAnnouncement = (id: string) => {
+    setAnnouncements(announcements.map(announcement => 
+      announcement.id === id 
+        ? { ...announcement, status: 'published', publishedAt: new Date().toISOString().split('T')[0] }
         : announcement
     ));
   };
@@ -272,9 +289,11 @@ const AnnouncementsManagement = () => {
 
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
           >
-            <PlusIcon className="h-5 w-5 mr-2" />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
             New Announcement
           </button>
         </div>
@@ -297,9 +316,6 @@ const AnnouncementsManagement = () => {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Audience
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Views
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Created
@@ -335,9 +351,6 @@ const AnnouncementsManagement = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                     {announcement.targetAudience}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {announcement.views}
-                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {new Date(announcement.createdAt).toLocaleDateString()}
                   </td>
@@ -358,7 +371,9 @@ const AnnouncementsManagement = () => {
                           className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
                           title="Publish"
                         >
-                          📢
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                          </svg>
                         </button>
                       )}
                       {announcement.status === 'published' && (
@@ -367,11 +382,24 @@ const AnnouncementsManagement = () => {
                           className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300"
                           title="Archive"
                         >
-                          📦
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8l4 4 4-4m6-2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2z" />
+                          </svg>
+                        </button>
+                      )}
+                      {announcement.status === 'archived' && (
+                        <button
+                          onClick={() => handleUnarchiveAnnouncement(announcement.id)}
+                          className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                          title="Unarchive"
+                        >
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l3-3m0 0l3 3m-3-3v12m8-16V6a2 2 0 00-2-2H7a2 2 0 00-2 2v2m14 0v8a2 2 0 01-2 2H7a2 2 0 01-2-2V8a2 2 0 012-2h10a2 2 0 012 2z" />
+                          </svg>
                         </button>
                       )}
                       <button
-                        onClick={() => handleDeleteAnnouncement(announcement.id)}
+                        onClick={() => handleDeleteAnnouncement(announcement)}
                         className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                       >
                         <TrashBinIcon className="h-4 w-4" />
@@ -387,7 +415,7 @@ const AnnouncementsManagement = () => {
 
       {/* Add Announcement Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-all duration-500 ease-out flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <div>
@@ -494,11 +522,18 @@ const AnnouncementsManagement = () => {
                 Cancel
               </button>
               <button
-                onClick={handleAddAnnouncement}
+                onClick={() => handleAddAnnouncement('draft')}
+                disabled={!newAnnouncement.title || !newAnnouncement.content}
+                className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
+              >
+                Save as Draft
+              </button>
+              <button
+                onClick={() => handleAddAnnouncement('published')}
                 disabled={!newAnnouncement.title || !newAnnouncement.content}
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
               >
-                Create Announcement
+                Publish Announcement
               </button>
             </div>
           </div>
@@ -507,7 +542,7 @@ const AnnouncementsManagement = () => {
 
       {/* Edit Announcement Modal - Similar structure to Add modal */}
       {showEditModal && selectedAnnouncement && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-all duration-500 ease-out flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <div>
@@ -623,6 +658,60 @@ const AnnouncementsManagement = () => {
               >
                 Save Changes
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && announcementToDelete && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-all duration-500 ease-out flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Delete Announcement
+                  </h3>
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-gray-600 dark:text-gray-400 mb-3">
+                  Are you sure you want to delete this announcement? This action cannot be undone.
+                </p>
+                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                    {announcementToDelete.title}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Created on {new Date(announcementToDelete.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setAnnouncementToDelete(null);
+                  }}
+                  className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteAnnouncement}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm"
+                >
+                  Delete Announcement
+                </button>
+              </div>
             </div>
           </div>
         </div>

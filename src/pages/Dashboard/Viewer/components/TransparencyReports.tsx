@@ -6,66 +6,55 @@ import {
   TableHeader,
   TableRow,
 } from "../../../../components/ui/table";
-
-interface Report {
-  id: number;
-  title: string;
-  type: string;
-  period: string;
-  size: string;
-  status: "Published" | "Draft" | "Archived";
-  downloadCount: number;
-}
-
-const reportsData: Report[] = [
-  {
-    id: 1,
-    title: "Annual Transparency Report 2024",
-    type: "Annual Report",
-    period: "Jan - Dec 2024",
-    size: "2.4 MB",
-    status: "Published",
-    downloadCount: 1247
-  },
-  {
-    id: 2,
-    title: "Quarterly Financial Overview Q4",
-    type: "Financial",
-    period: "Oct - Dec 2024",
-    size: "1.8 MB",
-    status: "Published",
-    downloadCount: 892
-  },
-  {
-    id: 3,
-    title: "Public Data Access Statistics",
-    type: "Analytics",
-    period: "Nov 2024",
-    size: "980 KB",
-    status: "Published",
-    downloadCount: 634
-  },
-  {
-    id: 4,
-    title: "Policy Implementation Review",
-    type: "Policy",
-    period: "Q3 2024",
-    size: "3.2 MB",
-    status: "Published",
-    downloadCount: 456
-  },
-  {
-    id: 5,
-    title: "Compliance Audit Report",
-    type: "Audit",
-    period: "Sep 2024",
-    size: "1.5 MB",
-    status: "Archived",
-    downloadCount: 234
-  }
-];
+import { reports as reportsData } from '../TransparencyReportViewer';
 
 export default function TransparencyReports() {
+  const handleDownload = async (url: string, filename?: string) => {
+    if (!url) return;
+    // derive filename from url if not provided
+    let name = filename;
+    if (!name) {
+      try {
+        const m = url.match(/[^\/\\?#]+(?=$|[?#])/);
+        name = m ? decodeURIComponent(m[0]) : 'download';
+      } catch (e) {
+        name = 'download';
+      }
+    }
+
+    // Try native anchor download first
+    try {
+      const a = document.createElement('a');
+      a.href = url;
+      a.setAttribute('download', name);
+      a.setAttribute('rel', 'noopener');
+      // some browsers require the anchor to be in the DOM
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    } catch (err) {
+      // fallback to fetch -> blob
+    }
+
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error('Network response was not ok');
+      const blob = await resp.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.setAttribute('download', name);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch (e) {
+      // Last resort: open in new tab
+      window.open(url, '_blank');
+    }
+  };
+
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
       <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -73,49 +62,11 @@ export default function TransparencyReports() {
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
             Transparency Reports
           </h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Access comprehensive reports and documentation
-          </p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              View the most recent transparency reports and updates.
+            </p>
         </div>
-
-        <div className="flex items-center gap-3">
-          <button className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
-            <svg
-              className="stroke-current"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M3 6H21L19 18H5L3 6Z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M3 6L2 2H1"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M16 10A4 4 0 1 1 8 10"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Archive
-          </button>
-          <button className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
-            All Reports
-          </button>
-        </div>
+        {/* Archive and All Reports buttons removed per UX request */}
       </div>
       
       <div className="max-w-full overflow-x-auto">
@@ -146,12 +97,7 @@ export default function TransparencyReports() {
               >
                 Size
               </TableCell>
-              <TableCell
-                isHeader
-                className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                Downloads
-              </TableCell>
+                {/* Downloads column removed per UX request */}
               <TableCell
                 isHeader
                 className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
@@ -168,7 +114,16 @@ export default function TransparencyReports() {
           </TableHeader>
 
           <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
-            {reportsData.map((report) => (
+            {(() => {
+              // show most recent reports from the shared reportsData source
+              const dateOf = (r: any) => {
+                if (r.publishDate) return new Date(r.publishDate).getTime() || 0;
+                return 0;
+              };
+              const sorted = [...reportsData].sort((a: any, b: any) => dateOf(b) - dateOf(a));
+              // show up to 6 most recent reports from the shared reportsData source
+              const recent = sorted.slice(0, 6);
+              return recent.map((report: any) => (
               <TableRow key={report.id}>
                 <TableCell className="py-3">
                   <div className="flex items-center gap-3">
@@ -205,17 +160,15 @@ export default function TransparencyReports() {
                   </div>
                 </TableCell>
                 <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                  {report.type}
+                  {report.type ?? 'Report'}
                 </TableCell>
                 <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                  {report.period}
+                  {report.period ?? report.publishDate}
                 </TableCell>
                 <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                   {report.size}
                 </TableCell>
-                <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                  {report.downloadCount.toLocaleString()}
-                </TableCell>
+                    {/* Downloads cell removed */}
                 <TableCell className="py-3">
                   <Badge
                     size="sm"
@@ -231,7 +184,15 @@ export default function TransparencyReports() {
                   </Badge>
                 </TableCell>
                 <TableCell className="py-3">
-                  <button className="inline-flex items-center gap-1 rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-medium text-white dark:text-white">
+                  <button
+                    onClick={() => {
+                      const url = (report as any).downloadUrl;
+                      const extMatch = url ? url.match(/\.[^/.?]+(?=$|\?)/) : null;
+                      const ext = extMatch ? extMatch[0] : '.pdf';
+                      handleDownload(url, `${report.title}${ext}`);
+                    }}
+                    className="inline-flex items-center gap-1 rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-medium text-white dark:text-white"
+                  >
                     <svg
                       className="stroke-current"
                       width="14"
@@ -266,7 +227,8 @@ export default function TransparencyReports() {
                   </button>
                 </TableCell>
               </TableRow>
-            ))}
+              ));
+            })()}
           </TableBody>
         </Table>
       </div>

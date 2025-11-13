@@ -116,7 +116,7 @@ const Home: FC = () => {
   };
 
   const NavigationHeader: FC = () => (
-    <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+    <header className={`fixed top-0 w-full z-40 transition-all duration-300 ${
       scrollY > 50 ? 'bg-blue-900/95 backdrop-blur-md shadow-lg' : 'bg-blue-900'
     } text-white`}>
       <div className="header-container">
@@ -131,11 +131,29 @@ const Home: FC = () => {
             </div>
           </div>
           
-          <nav className="nav-menu">
+          <nav className="nav-menu flex items-center">
             <button onClick={() => scrollToSection('home')} className="nav-link !text-white">Home</button>
             <button onClick={() => scrollToSection('about')} className="nav-link !text-white">About</button>
             <button onClick={() => scrollToSection('features')} className="nav-link !text-white">Features</button>
-            <Link to="/auth/signup" className="nav-link !text-white">Get Started</Link>
+            <Link to="/auth/signup" className="nav-link !text-white mr-4">Get Started</Link>
+
+            {/* Header-aligned Log In / Sign Up buttons (smaller, bold text) */}
+            <div className="ml-6 flex items-center gap-3">
+              <Link
+                to="/auth/signin"
+                className="px-3 py-1 rounded-md text-sm font-extrabold text-white border border-white/20 transition-colors duration-150 hover:bg-white/20 hover:shadow-md"
+                style={{ background: 'transparent' }}
+              >
+                Log In
+              </Link>
+
+              <Link
+                to="/auth/signup"
+                className="px-3 py-1 rounded-md text-sm font-extrabold bg-white text-[#365487] transition-colors duration-150 hover:bg-blue-100 hover:text-blue-900 hover:shadow-md border border-white/30"
+              >
+                Sign Up
+              </Link>
+            </div>
           </nav>
         </div>
       </div>
@@ -165,26 +183,28 @@ const Home: FC = () => {
       
       <div className="hero-content">
         <div className="hero-content-inner">
-          <h1 className="hero-title">
+          <h1
+            className="hero-title"
+            style={{
+              fontSize: 'clamp(2.5rem, 6.5vw, 4.75rem)',
+              lineHeight: 1.02,
+              paddingTop: '2.5rem',
+              paddingBottom: '1rem',
+              textAlign: 'center',
+            }}
+          >
             <span className="hero-title-main">Making Technology</span>
             <span className="hero-title-highlight">Transparent & Accessible</span>
           </h1>
           
-          <p className="hero-description">
+          <p className="hero-description" style={{ marginTop: '0.5rem' }}>
             TransparaTech provides innovative technology solutions with{' '}
             <span className="hero-description-highlight">transparency at the core</span>{' '}
             of everything we do. Building a better future through{' '}
             <span className="hero-description-highlight-blue">accessible tech</span>.
           </p>
           
-          <div className="hero-buttons">
-            <Link to="/auth/signin" className="hero-button-primary !text-[#365487]">
-              Log In
-            </Link>
-            <Link to="/auth/signup" className="hero-button-secondary">
-              Sign Up
-            </Link>
-          </div>
+          {/* Buttons moved to header */}
         </div>
       </div>
 
@@ -209,17 +229,17 @@ const Home: FC = () => {
 
   const FeatureCard: FC<{feature: Feature, isVisible: boolean, delay?: number}> = ({ feature, isVisible, delay = 0 }) => (
     <div 
-      className={`feature-card ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`} 
+      className={`feature-card ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'} flex flex-col items-center text-center`} 
       style={{ transitionDelay: `${delay}ms` }}
     >
-      <div className={`feature-icon ${feature.bgColor}`}>
+      <div className={`feature-icon ${feature.bgColor} mb-4 flex items-center justify-center`}>
         {feature.icon}
       </div>
       <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
-      <p className="text-gray-600">
+      <p className="text-gray-600 mb-2">
         <strong>{feature.subtitle}</strong>
       </p>
-      {feature.description && <p className="text-gray-600 text-justify indent-8">{feature.description}</p>}
+      {feature.description && <p className="text-gray-600">{feature.description}</p>}
     </div>
   );
 

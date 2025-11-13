@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import PageMeta from '../../../components/common/PageMeta';
 
-const UploadDocuments: React.FC = () => {
+interface UploadDocumentsProps {
+  onClose?: () => void;
+  onSubmitSuccess?: (submission: any) => void;
+  embedded?: boolean;
+}
+
+const UploadDocuments: React.FC<UploadDocumentsProps> = ({ onClose, onSubmitSuccess, embedded = false }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -14,19 +20,14 @@ const UploadDocuments: React.FC = () => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const toastTimeoutRef = useRef<number | null>(null);
+  const closeTimeoutRef = useRef<number | null>(null);
 
   const categories = [
     'Financial Report',
-    'Receipt',
-    'Purchase Order',
-    'Expense Report',
-    'Performance Report',
-    'Policy Document',
-    'Meeting Minutes',
-    'Audit Report',
-    'Budget Document',
-    'Contract',
-    'Other'
+    'Turnover of Assets',
+    'Expense Summary'
   ];
 
   const priorities = [
@@ -102,7 +103,43 @@ const UploadDocuments: React.FC = () => {
           clearInterval(progressInterval);
           setIsUploading(false);
           // Here you would typically show a success message and reset the form
-          console.log('Upload completed:', formData);
+          const newSubmission = {
+            id: Date.now(),
+            title: formData.title || 'Untitled Document',
+            type: formData.category || 'Other',
+            submittedDate: new Date().toISOString().slice(0, 10),
+            status: 'pending',
+            reviewer: 'Pending'
+          };
+          // notify parent that submission succeeded
+          if (onSubmitSuccess) onSubmitSuccess(newSubmission);
+
+          // Reset the form to initial empty state immediately after success
+          setFormData({
+            title: '',
+            description: '',
+            category: '',
+            priority: 'medium',
+            tags: '',
+            files: []
+          });
+          setIsDragOver(false);
+          setUploadProgress(0);
+
+          // Show a temporary toast notification
+          setShowToast(true);
+          // Hide toast after a few seconds
+          toastTimeoutRef.current = window.setTimeout(() => {
+            setShowToast(false);
+          }, 3500);
+
+          // Close modal shortly after showing toast so user sees confirmation briefly
+          if (onClose) {
+            closeTimeoutRef.current = window.setTimeout(() => {
+              onClose();
+            }, 1800);
+          }
+
           return 100;
         }
         return prev + 10;
@@ -110,12 +147,25 @@ const UploadDocuments: React.FC = () => {
     }, 200);
   };
 
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <>
-      <PageMeta 
-        title="Upload Documents | PUPSMB TransparaTech" 
-        description="Upload new reports, receipts, and requests for review"
-      />
+      {!embedded && (
+        <PageMeta 
+          title="Upload Documents | PUPSMB TransparaTech" 
+          description="Upload new reports, receipts, and requests for review"
+        />
+      )}
       <div className="p-6">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
@@ -339,6 +389,20 @@ const UploadDocuments: React.FC = () => {
           </form>
         </div>
       </div>
+      {/* Toast notification shown after successful submission */}
+      {showToast && (
+        <div className="fixed right-4 bottom-6 z-[99999]">
+          <div className="flex items-center bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg space-x-3 w-80">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <div className="flex-1">
+              <p className="font-medium">Document submitted successfully.</p>
+              <p className="text-sm opacity-90">We received your document and it's pending review.</p>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

@@ -6,12 +6,10 @@ import UserManagement from '../pages/Dashboard/Admin/UserManagement';
 import OrganizationManagement from '../pages/Dashboard/Admin/OrganizationManagement';
 import AnnouncementsManagement from '../pages/Dashboard/Admin/AnnouncementsManagement';
 import AnalyticsReports from '../pages/Dashboard/Admin/AnalyticsReports';
-import SystemSettings from '../pages/Dashboard/Admin/SystemSettings';
 import OfficerDashboard from '../pages/Dashboard/Officer';
 import UploadDocuments from '../pages/Dashboard/Officer/UploadDocuments';
 import MySubmissions from '../pages/Dashboard/Officer/MySubmissions';
 import ActivityLog from '../pages/Dashboard/Officer/ActivityLog';
-import Announcements from '../pages/Dashboard/Officer/Announcements';
 import ViewerDashboard from '../pages/Dashboard/Viewer';
 import DocumentsViewer from '../pages/Dashboard/Viewer/DocumentsViewer';
 import TransparencyReportViewer from '../pages/Dashboard/Viewer/TransparencyReportViewer';
@@ -109,14 +107,6 @@ const AppRoutes = () => {
           ),
         },
         {
-          path: 'admin/system-settings',
-          element: (
-            <PrivateRoute>
-              <SystemSettings />
-            </PrivateRoute>
-          ),
-        },
-        {
           path: 'officer',
           element: (
             <PrivateRoute>
@@ -148,14 +138,7 @@ const AppRoutes = () => {
             </PrivateRoute>
           ),
         },
-        {
-          path: 'officer/announcements',
-          element: (
-            <PrivateRoute>
-              <Announcements />
-            </PrivateRoute>
-          ),
-        },
+        // Officer announcements route removed (Officer-specific announcements page disabled)
         {
           path: 'viewer',
           element: (

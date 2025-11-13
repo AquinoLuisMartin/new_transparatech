@@ -2,9 +2,7 @@ import PageMeta from '../../../components/common/PageMeta';
 import ViewerMetrics from './components/ViewerMetrics';
 import PublicInformation from './components/PublicInformation';
 import TransparencyReports from './components/TransparencyReports';
-import DataVisualization from './components/DataVisualization';
 import PublicAnnouncements from './components/PublicAnnouncements';
-import ContactInformation from './components/ContactInformation';
 
 const ViewerDashboard = () => {
   return (
@@ -40,11 +38,7 @@ const ViewerDashboard = () => {
         {/* Transparency Reports */}
         <TransparencyReports />
 
-        {/* Data Visualization */}
-        <DataVisualization />
-
-        {/* Contact Information */}
-        <ContactInformation />
+  {/* DataVisualization and ContactInformation removed per UX request */}
       </div>
     </>
   );

@@ -3,8 +3,7 @@ import {
   DocsIcon,
   UserIcon,
   GroupIcon,
-  BoxIconLine,
-  PieChartIcon
+  BoxIconLine
 } from '../../../icons';
 
 interface AnalyticsData {
@@ -28,12 +27,12 @@ interface OrganizationStats {
 }
 
 const AnalyticsReports = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
-  const [selectedReport, setSelectedReport] = useState<'overview' | 'submissions' | 'users' | 'organizations'>('overview');
+  const [showOrgModal, setShowOrgModal] = useState(false);
+  const [selectedOrg, setSelectedOrg] = useState<OrganizationStats | null>(null);
 
   // Mock analytics data
   const analyticsData: AnalyticsData = {
-    period: selectedPeriod,
+    period: 'month',
     totalSubmissions: 156,
     approvedSubmissions: 134,
     pendingSubmissions: 15,
@@ -90,11 +89,6 @@ const AnalyticsReports = () => {
   const rejectionRate = (analyticsData.rejectedSubmissions / analyticsData.totalSubmissions * 100).toFixed(1);
   const pendingRate = (analyticsData.pendingSubmissions / analyticsData.totalSubmissions * 100).toFixed(1);
 
-  const exportReport = (format: 'pdf' | 'excel' | 'csv') => {
-    // Mock export functionality
-    alert(`Exporting ${selectedReport} report as ${format.toUpperCase()}...`);
-  };
-
   return (
     <div className="p-6 bg-white dark:bg-gray-900 min-h-screen">
       {/* Header */}
@@ -105,66 +99,6 @@ const AnalyticsReports = () => {
         <p className="text-gray-600 dark:text-gray-400">
           Comprehensive transparency reporting and system analytics
         </p>
-      </div>
-
-      {/* Controls */}
-      <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg mb-8">
-        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Time Period
-              </label>
-              <select
-                value={selectedPeriod}
-                onChange={(e) => setSelectedPeriod(e.target.value as typeof selectedPeriod)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              >
-                <option value="week">Last Week</option>
-                <option value="month">Last Month</option>
-                <option value="quarter">Last Quarter</option>
-                <option value="year">Last Year</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Report Type
-              </label>
-              <select
-                value={selectedReport}
-                onChange={(e) => setSelectedReport(e.target.value as typeof selectedReport)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              >
-                <option value="overview">Overview</option>
-                <option value="submissions">Submissions</option>
-                <option value="users">Users</option>
-                <option value="organizations">Organizations</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <button
-              onClick={() => exportReport('pdf')}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-            >
-              Export PDF
-            </button>
-            <button
-              onClick={() => exportReport('excel')}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-            >
-              Export Excel
-            </button>
-            <button
-              onClick={() => exportReport('csv')}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-            >
-              Export CSV
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* Key Metrics */}
@@ -289,22 +223,20 @@ const AnalyticsReports = () => {
                   Submissions
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Approval Rate
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Avg Processing Time
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Last Activity
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Performance
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {organizationStats.map((org, index) => (
-                <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <tr 
+                  key={index} 
+                  onClick={() => {
+                    setSelectedOrg(org);
+                    setShowOrgModal(true);
+                  }}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
@@ -318,39 +250,8 @@ const AnalyticsReports = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                     {org.submissions}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      org.approvalRate >= 90 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : org.approvalRate >= 80
-                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                    }`}>
-                      {org.approvalRate.toFixed(1)}%
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {org.avgProcessingTime} days
-                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {new Date(org.lastActivity).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-16 bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-                        <div 
-                          className={`h-2 rounded-full ${
-                            org.approvalRate >= 90 ? 'bg-green-600' : 
-                            org.approvalRate >= 80 ? 'bg-yellow-600' : 'bg-red-600'
-                          }`}
-                          style={{ width: `${org.approvalRate}%` }}
-                        ></div>
-                      </div>
-                      <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                        {org.approvalRate >= 90 ? 'Excellent' : 
-                         org.approvalRate >= 80 ? 'Good' : 'Needs Improvement'}
-                      </span>
-                    </div>
                   </td>
                 </tr>
               ))}
@@ -359,31 +260,184 @@ const AnalyticsReports = () => {
         </div>
       </div>
 
-      {/* Transparency Metrics */}
-      <div className="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
-        <div className="flex items-center mb-4">
-          <PieChartIcon className="h-8 w-8 text-blue-600 dark:text-blue-400 mr-3" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Transparency Metrics
-          </h3>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {((analyticsData.approvedSubmissions + analyticsData.rejectedSubmissions) / analyticsData.totalSubmissions * 100).toFixed(1)}%
+      {/* Organization Details Modal */}
+      {showOrgModal && selectedOrg && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-all duration-500 ease-out flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {selectedOrg.name} ({selectedOrg.acronym})
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Organization Details & Activity Overview
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowOrgModal(false);
+                  setSelectedOrg(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">Processing Completion Rate</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">2.3</div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">Average Processing Days</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">98.2%</div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">System Uptime</div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto flex-1">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Organization Info */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg">
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Organization Information
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Full Name:</span>
+                      <p className="text-sm text-gray-900 dark:text-white">{selectedOrg.name}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Acronym:</span>
+                      <p className="text-sm text-gray-900 dark:text-white">{selectedOrg.acronym}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Type:</span>
+                      <p className="text-sm text-gray-900 dark:text-white">Student Organization</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Status:</span>
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                        Active
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Activity Metrics */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg">
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Activity Metrics
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Submissions:</span>
+                      <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{selectedOrg.submissions}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Approval Rate:</span>
+                      <p className="text-lg font-bold text-green-600 dark:text-green-400">{selectedOrg.approvalRate.toFixed(1)}%</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Avg Processing Time:</span>
+                      <p className="text-lg font-bold text-orange-600 dark:text-orange-400">{selectedOrg.avgProcessingTime} days</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Last Activity:</span>
+                      <p className="text-sm text-gray-900 dark:text-white">{new Date(selectedOrg.lastActivity).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Activity */}
+              <div className="mt-6">
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Recent Transparency Reports
+                </h4>
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
+                  <div className="divide-y divide-gray-200 dark:divide-gray-600">
+                    <div className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">Financial Report Q3 2025</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Submitted on November 1, 2025</p>
+                        </div>
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                          Approved
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">Activity Report October 2025</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Submitted on October 28, 2025</p>
+                        </div>
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                          Approved
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">Membership Update Report</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Submitted on October 15, 2025</p>
+                        </div>
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                          Under Review
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                  <h5 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-2">Contact Information</h5>
+                  <div className="space-y-1">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      Email: {selectedOrg.acronym.toLowerCase()}@university.edu
+                    </p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      Office: Student Center Room {100 + selectedOrg.submissions}
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                  <h5 className="text-sm font-semibold text-green-800 dark:text-green-300 mb-2">Performance Rating</h5>
+                  <div className="flex items-center">
+                    <div className="flex-1">
+                      <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            selectedOrg.approvalRate >= 90 ? 'bg-green-600' : 
+                            selectedOrg.approvalRate >= 80 ? 'bg-yellow-600' : 'bg-red-600'
+                          }`}
+                          style={{ width: `${selectedOrg.approvalRate}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                    <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {selectedOrg.approvalRate >= 90 ? 'Excellent' : 
+                       selectedOrg.approvalRate >= 80 ? 'Good' : 'Needs Improvement'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 rounded-b-xl flex-shrink-0">
+              <button
+                onClick={() => {
+                  setShowOrgModal(false);
+                  setSelectedOrg(null);
+                }}
+                className="px-6 py-3 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

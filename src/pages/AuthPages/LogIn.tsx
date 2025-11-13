@@ -1,7 +1,7 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { ROLES } from '../../permissions';
+import axios from 'axios';
 import './Login.css';
 
 interface FormData {
@@ -10,23 +10,7 @@ interface FormData {
   password: string;
 }
 
-interface DemoAccount {
-  role: string;
-  email: string;
-  studentNumber: string;
-  password: string;
-  name: string;
-  organization: string;
-  path: string;
-}
 
-interface UserSession {
-  name: string;
-  email: string;
-  studentNumber: string;
-  role: string;
-  organization: string;
-}
 
 const LogIn: React.FC = () => {
   const navigate = useNavigate();
@@ -49,43 +33,50 @@ const LogIn: React.FC = () => {
 
   const togglePasswordVisibility = (): void => setShowPassword(v => !v);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    // demo credential checks (updated with correct paths)
-    const demoAccounts: DemoAccount[] = [
-      { role: ROLES.VIEWER, email: 'jayson@pupsmb.edu.ph', studentNumber: '2022-00098-SM-0', password: 'demo123', name: 'Jayson', organization: 'Sample Organization', path: '/dashboard/viewer' },
-      { role: ROLES.ADMIN_FULL, email: 'admin@pupsmb.edu.ph', studentNumber: 'ADM-2025-001', password: 'admin123', name: 'System Administrator', organization: 'TransparaTech System', path: '/dashboard/admin' },
-      { role: ROLES.ADMIN_APPROVAL, email: 'approval@pupsmb.edu.ph', studentNumber: 'ADM-2025-002', password: 'approval123', name: 'Approval Administrator', organization: 'TransparaTech System', path: '/dashboard/admin' },
-      { role: ROLES.OFFICER, email: 'officer@pupsmb.edu.ph', studentNumber: 'OFF-2025-001', password: 'officer123', name: 'Juan Dela Cruz', organization: 'Student Council', path: '/dashboard/officer' }
-    ];
+    
+    try {
+      const response = await axios.post('/api/v1/auth/login', formData);
 
-    const match = demoAccounts.find(acc => 
-      acc.email === formData.email && 
-      acc.studentNumber === formData.studentNumber && 
-      acc.password === formData.password
-    );
+      if (response.data.success) {
+        const { user, accessToken } = response.data.data;
+        
+        const userSession = {
+          name: `${user.firstName} ${user.lastName}`,
+          email: user.email,
+          studentNumber: user.studentNumber,
+          role: user.roleId, // This should be the role name from the server
+          organization: user.organizationId, // This should be the org name
+        };
 
-    if (match) {
-      const userSession: UserSession = {
-        name: match.name,
-        email: match.email,
-        studentNumber: match.studentNumber,
-        role: match.role,
-        organization: match.organization
-      };
-      
-      // Store in localStorage for persistence
-      localStorage.setItem('userSession', JSON.stringify(userSession));
-      
-      // Update AuthContext
-      login(match.role);
-      
-      // Navigate to the appropriate dashboard
-      navigate(match.path);
-      return;
+        localStorage.setItem('userSession', JSON.stringify(userSession));
+        localStorage.setItem('accessToken', accessToken);
+        
+        login(user.roleId);
+
+        // Navigate based on role
+        switch (user.roleId) {
+          case 1: // Assuming 1 is admin
+            navigate('/dashboard/admin');
+            break;
+          case 2: // Assuming 2 is officer
+            navigate('/dashboard/officer');
+            break;
+          case 3: // Assuming 3 is viewer
+            navigate('/dashboard/viewer');
+            break;
+          default:
+            navigate('/dashboard');
+        }
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        alert(error.response.data.message || 'An error occurred during login.');
+      } else {
+        alert('An unexpected error occurred.');
+      }
     }
-
-    alert(`Invalid credentials!\n\nDemo Viewer:\nEmail: jayson@pupsmb.edu.ph\nStudent Number: 2022-00098-SM-0\nPassword: demo123\n\nDemo Full Admin:\nEmail: admin@pupsmb.edu.ph\nStudent Number: ADM-2025-001\nPassword: admin123\n\nDemo Approval Admin:\nEmail: approval@pupsmb.edu.ph\nStudent Number: ADM-2025-002\nPassword: approval123\n\nDemo Officer:\nEmail: officer@pupsmb.edu.ph\nStudent Number: OFF-2025-001\nPassword: officer123`);
   };
 
   const handleForgotChange = (e: ChangeEvent<HTMLInputElement>): void => {
@@ -107,7 +98,7 @@ const LogIn: React.FC = () => {
   };
 
   const getRoleTitle = (): string => 'User Login';
-  const getSignupLink = (): string => '/signup';
+  
 
   return (
     <div className="login">
@@ -283,7 +274,12 @@ const LogIn: React.FC = () => {
 
             <div className="login__footer">
               <p className="login__footer-text">Don't have an account?{' '}
-                <button type="button" onClick={() => navigate(getSignupLink())} className="login__link-btn">Sign up here</button>
+                <span
+                  onClick={() => navigate('/auth/signup')}
+                  className="text-blue-600 cursor-pointer hover:underline"
+                >
+                  Sign up here
+                </span>
               </p>
 
               <p className="login__forgot">

@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { 
-  PlusIcon, 
   PencilIcon, 
   TrashBinIcon,
   GroupIcon,
   DocsIcon,
-  CalenderIcon,
   BoxIconLine
 } from '../../../icons';
 
@@ -31,6 +29,17 @@ const OrganizationManagement = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
+
+  // Organization options from signup form
+  const organizationOptions = [
+    { value: 'Alliance of Computer Engineering Students', label: 'Alliance of Computer Engineering Students', acronym: 'ACES' },
+    { value: 'Integrated Students in Information Technology Education', label: 'Integrated Students in Information Technology Education', acronym: 'iSITE' },
+    { value: 'Junior Philippine Institute of Accountancy - Sta Maria', label: 'Junior Philippine Institute of Accountancy - Sta Maria', acronym: 'JPIA' },
+    { value: 'Association of Future Teachers', label: 'Association of Future Teachers', acronym: 'AFT' },
+    { value: 'Hospitality Management Society', label: 'Hospitality Management Society', acronym: 'HMSOC' },
+    { value: 'Chamber of Entrepreneurs and Managers', label: 'Chamber of Entrepreneurs and Managers', acronym: 'CEM' },
+    { value: 'Diploma in Office Management SY-Quest', label: 'Diploma in Office Management SY-Quest', acronym: 'DOMT' }
+  ];
 
   // Mock data based on provided organizations
   const [organizations, setOrganizations] = useState<Organization[]>([
@@ -143,7 +152,6 @@ const OrganizationManagement = () => {
 
   const [newOrg, setNewOrg] = useState({
     name: '',
-    acronym: '',
     description: '',
     contactEmail: '',
     president: '',
@@ -158,10 +166,11 @@ const OrganizationManagement = () => {
   });
 
   const handleAddOrganization = () => {
+    const selectedOrgOption = organizationOptions.find(opt => opt.value === newOrg.name);
     const organization: Organization = {
       id: Date.now().toString(),
       name: newOrg.name,
-      acronym: newOrg.acronym,
+      acronym: selectedOrgOption?.acronym || '',
       description: newOrg.description,
       status: 'active',
       memberCount: 0,
@@ -175,7 +184,7 @@ const OrganizationManagement = () => {
     };
 
     setOrganizations([...organizations, organization]);
-    setNewOrg({ name: '', acronym: '', description: '', contactEmail: '', president: '', adviser: '' });
+    setNewOrg({ name: '', description: '', contactEmail: '', president: '', adviser: '' });
     setShowAddModal(false);
   };
 
@@ -290,11 +299,13 @@ const OrganizationManagement = () => {
             </select>
           </div>
 
-          <button
+          <button 
             onClick={() => setShowAddModal(true)}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
           >
-            <PlusIcon className="h-5 w-5 mr-2" />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
             Add Organization
           </button>
         </div>
@@ -376,14 +387,22 @@ const OrganizationManagement = () => {
                       </button>
                       <button
                         onClick={() => toggleOrganizationStatus(org.id)}
-                        className={`${
+                        className={`p-2 rounded transition-colors ${
                           org.status === 'active' 
-                            ? 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300'
+                            ? 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300'
                             : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'
                         }`}
                         title={org.status === 'active' ? 'Deactivate' : 'Activate'}
                       >
-                        {org.status === 'active' ? '🔴' : '🟢'}
+                        {org.status === 'active' ? (
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        ) : (
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        )}
                       </button>
                       <button
                         onClick={() => handleDeleteOrganization(org.id)}
@@ -402,7 +421,7 @@ const OrganizationManagement = () => {
 
       {/* Add Organization Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-all duration-500 ease-out flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
@@ -427,34 +446,23 @@ const OrganizationManagement = () => {
             {/* Modal Body - Scrollable */}
             <div className="p-6 overflow-y-auto flex-1">
               <div className="grid grid-cols-1 gap-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Organization Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newOrg.name}
-                      onChange={(e) => setNewOrg({ ...newOrg, name: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                      placeholder="Enter organization name"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Acronym <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newOrg.acronym}
-                      onChange={(e) => setNewOrg({ ...newOrg, acronym: e.target.value.toUpperCase() })}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                      placeholder="e.g., ACES"
-                      required
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Organization Name <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={newOrg.name}
+                    onChange={(e) => setNewOrg({ ...newOrg, name: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    required
+                  >
+                    <option value="">Select an organization</option>
+                    {organizationOptions.map(org => (
+                      <option key={org.value} value={org.value}>
+                        {org.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -527,7 +535,7 @@ const OrganizationManagement = () => {
               </button>
               <button
                 onClick={handleAddOrganization}
-                disabled={!newOrg.name || !newOrg.acronym || !newOrg.description || !newOrg.contactEmail || !newOrg.president || !newOrg.adviser}
+                disabled={!newOrg.name || !newOrg.description || !newOrg.contactEmail || !newOrg.president || !newOrg.adviser}
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
               >
                 Add Organization
@@ -539,7 +547,7 @@ const OrganizationManagement = () => {
 
       {/* Edit Organization Modal */}
       {showEditModal && selectedOrg && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-all duration-500 ease-out flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">

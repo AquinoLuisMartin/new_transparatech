@@ -110,7 +110,7 @@ const FeedbackViewer: React.FC = () => {
       />
       <div className="p-6">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-8 text-center">
+          <div className="mb-6 text-left">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Feedback & Suggestions
             </h1>
@@ -119,15 +119,14 @@ const FeedbackViewer: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Feedback Form */}
-            <div className="lg:col-span-2">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-                  Share Your Feedback
-                </h2>
-                
-                <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-6 max-w-4xl mx-auto">
+            {/* Feedback Form (full width) */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                Share Your Feedback
+              </h2>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Anonymous Option */}
                   <div className="flex items-center">
                     <input
@@ -244,67 +243,33 @@ const FeedbackViewer: React.FC = () => {
                   </div>
                 </form>
               </div>
-            </div>
 
-            {/* Sidebar Information */}
-            <div className="space-y-6">
-              {/* Contact Information */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4">
-                  Contact Information
-                </h3>
-                <div className="space-y-3 text-sm text-blue-800 dark:text-blue-200">
-                  <div className="flex items-center">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    feedback@pupsmb.edu.ph
-                  </div>
-                  <div className="flex items-center">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                    (02) 8123-4567
-                  </div>
-                  <div className="flex items-start">
-                    <svg className="w-4 h-4 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Sta. Mesa, Manila, Philippines
-                  </div>
+              {/* Two-column grid: Response Time + Feedback Guidelines */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-3">Response Time</h3>
+                  <ul className="list-none text-sm space-y-2 text-green-800 dark:text-green-200">
+                    <li className="flex items-start"><span className="mr-2 text-lg leading-none">•</span><span><strong>General Feedback:</strong> 3–5 business days</span></li>
+                    <li className="flex items-start"><span className="mr-2 text-lg leading-none">•</span><span><strong>Technical Issues:</strong> 1–2 business days</span></li>
+                    <li className="flex items-start"><span className="mr-2 text-lg leading-none">•</span><span><strong>Urgent Matters:</strong> Within 24 hours</span></li>
+                  </ul>
+                </div>
+
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-yellow-900 dark:text-yellow-100 mb-3">Feedback Guidelines</h3>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm text-yellow-800 dark:text-yellow-200 list-none">
+                    <li className="flex items-start"><span className="mr-2 text-lg leading-none">•</span><span>Be specific and constructive</span></li>
+                    <li className="flex items-start"><span className="mr-2 text-lg leading-none">•</span><span>One topic per submission</span></li>
+                    <li className="flex items-start"><span className="mr-2 text-lg leading-none">•</span><span>Include relevant details</span></li>
+                    <li className="flex items-start"><span className="mr-2 text-lg leading-none">•</span><span>Check FAQ before submitting</span></li>
+                    <li className="flex items-start sm:col-span-2"><span className="mr-2 text-lg leading-none">•</span><span>Maintain respectful communication</span></li>
+                  </ul>
                 </div>
               </div>
 
-              {/* Response Time */}
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-4">
-                  Response Time
-                </h3>
-                <div className="space-y-2 text-sm text-green-800 dark:text-green-200">
-                  <p><strong>General Feedback:</strong> 3-5 business days</p>
-                  <p><strong>Technical Issues:</strong> 1-2 business days</p>
-                  <p><strong>Urgent Matters:</strong> Within 24 hours</p>
-                </div>
-              </div>
-
-              {/* Guidelines */}
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-yellow-900 dark:text-yellow-100 mb-4">
-                  Feedback Guidelines
-                </h3>
-                <ul className="space-y-2 text-sm text-yellow-800 dark:text-yellow-200">
-                  <li>• Be specific and constructive</li>
-                  <li>• Include relevant details</li>
-                  <li>• Maintain respectful communication</li>
-                  <li>• One topic per submission</li>
-                  <li>• Check FAQ before submitting</li>
-                </ul>
-              </div>
-
-              {/* Privacy Notice */}
-              <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              {/* Privacy Notice (full width) */}
+              <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-6 mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                   Privacy & Data Protection
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -314,7 +279,6 @@ const FeedbackViewer: React.FC = () => {
                 </p>
               </div>
             </div>
-          </div>
         </div>
       </div>
     </>
